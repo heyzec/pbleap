@@ -1,13 +1,12 @@
-# # It is better to use a whitelist than a blacklist
-#
-# # Ignore everything
-# *
-# */**
-#
-# # Whitelist what you need (package.json and README.md included by default)
-# !out/*
-# !assets/*
-# !LICENSE*
-# !node_modules/*
-# !*.wasm
-.direnv/
+# It is better to use a whitelist than a blacklist
+
+# Ignore everything
+*
+*/**
+
+# Whitelist what you need (package.json and README.md included by default)
+!dist/*
+!assets/*
+!LICENSE*
+!node_modules/*
+!*.wasm

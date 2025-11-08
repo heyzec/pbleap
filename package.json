@@ -6,7 +6,7 @@
   "engines": {
     "vscode": "^1.93.0"
   },
-  "main": "./dist/extension.js",
+  "main": "./dist/wrapper.js",
   "activationEvents": [
     "*"
   ],
@@ -19,33 +19,24 @@
     ]
   },
   "scripts": {
-    "//vscode:prepublish": "npx rollup -c",
     "vscode:prepublish": "npm run compile",
-    "compile:wrapper": "tsc src/extension.ts --outDir dist --module commonjs --target ES2020",
+    "compile:wrapper": "tsc src/wrapper.ts --outDir dist --module commonjs --target ES2020",
     "compile:extension": "webpack --mode production --devtool hidden-source-map",
     "compile": "npm run compile:wrapper && npm run compile:extension",
     "watch": "webpack --watch",
     "package": "vsce package --no-dependencies --allow-missing-repository --allow-star-activation"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^29.0.0",
-    "@rollup/plugin-node-resolve": "^16.0.3",
-    "@rollup/plugin-replace": "^6.0.3",
-    "@rollup/plugin-typescript": "^12.3.0",
     "@types/node": "^22.5.4",
     "@types/vscode": "^1.93.0",
     "@vscode/vsce": "^3.6.2",
-    "esbuild": "^0.25.12",
-    "esbuild-plugin-polyfill-node": "^0.3.0",
-    "rollup": "^4.53.1",
+    "tree-sitter-go": "^0.25.0",
     "ts-loader": "^9.5.4",
     "typescript": "^5.6.2",
     "webpack": "^5.102.1",
     "webpack-cli": "^6.0.1"
   },
   "dependencies": {
-    "tree-sitter-go": "^0.23.4",
-    "tslib": "^2.8.1",
     "web-tree-sitter": "^0.25.10"
   }
 }
