@@ -8,15 +8,27 @@ const path = require('path');
 const extensionConfig = {
   target: 'node',
   mode: 'none',
-  entry: './src/extension.ts',
+  entry: {
+    // extension: './src/extension.ts', // A is compiled separately
+    more: './src/more.ts', // B is bundled with all its dependencies (C, etc.)
+  },
+
   output: {
+    filename: '[name].js',
     path: path.resolve(__dirname, 'dist'),
-    filename: 'extension.js',
     libraryTarget: 'commonjs2'
   },
-  externals: {
-    vscode: 'commonjs vscode'
-  },
+  externals: [
+    // Keep vscode module external
+    'vscode',
+    // Treat B as external when bundling A
+    ({ context, request }, callback) => {
+      if (context && context.endsWith('src') && request === './more') {
+        return callback(null, 'commonjs ./more.js');
+      }
+      callback();
+    },
+  ],
   resolve: {
     extensions: ['.ts', '.js']
   },
