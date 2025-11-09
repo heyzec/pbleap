@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 
 import { WalkerFactory } from "./walkers/base";
-import { GoProvider, ProtoProvider } from "./handlers";
+import { GoProvider, ProtoProvider } from "./providers";
 
 // For stacktraces to show line numbers mapped from to typescript files (even on production builds)
 require("source-map-support").install();
@@ -11,8 +11,8 @@ export function activate(context: vscode.ExtensionContext) {
 
   const disposables: vscode.Disposable[] = [];
 
-  // NOTE
-  // provideDefinition: (doc, pos) => ProtoProvider.handleDefinition(doc, pos) // extracting the method loses this (unlike python)
+  // We cannot use `provideDefinition: ProtoProvider.handleDefinition`
+  // because extracting the method loses access to `this` (unlike python)
   const subscriptions = [
     vscode.languages.registerReferenceProvider(
       [{ language: "proto", scheme: "file" }, { pattern: "**/*.proto" }],
