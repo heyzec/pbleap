@@ -2,31 +2,35 @@ import * as vscode from "vscode";
 
 import { Parser, Language } from 'web-tree-sitter';
 
-import { initGoParser, handleGoReference } from "./features/go";
-import { initProtoParser, handleProtoReference } from "./features/proto";
+import { WalkerFactory } from "./walkers/base";
+import { GoProvider, ProtoProvider } from "./handlers";
 
 export function activate(context: vscode.ExtensionContext) {
-  Parser.init().then(() => {
-    initProtoParser(context)
-    initGoParser(context)
-  }).catch(err => {
-    console.error("Failed to initialize parsers:", err);
-  });
+  WalkerFactory.globalSetup(context.extensionPath);
+  // Parser.init().then(() => {
+  //   initProtoParser(context)
+  //   initGoParser(context)
+  // }).catch(err => {
+  //   console.error("Failed to initialize parsers:", err);
+  // });
 
   const disposables: vscode.Disposable[] = [];
 
+  // NOTE
+  // provideDefinition: (doc, pos) => ProtoProvider.handleDefinition(doc, pos) // extracting the method loses this (unlike python)
   const subscriptions = [
     vscode.languages.registerReferenceProvider([
       { language: "proto", scheme: "file" },
       { pattern: "**/*.proto" }
     ], {
-      provideReferences: handleProtoReference
+      // provideReferences: handleProtoReference,
+      provideReferences: (doc, pos) => ProtoProvider.handleDefinition(doc, pos)
     }),
     vscode.languages.registerDefinitionProvider([
       { language: "proto", scheme: "file" },
       { pattern: "**/*.proto" }
     ], {
-      provideDefinition: handleProtoReference
+      provideDefinition: (doc, pos) => ProtoProvider.handleDefinition(doc, pos)
       // provideDefinition: () => []
       // TODO: Find another way to allow ctrl click, this is technically wrong
     }),
@@ -34,7 +38,7 @@ export function activate(context: vscode.ExtensionContext) {
       { language: "go", scheme: "file" },
       { pattern: "**/*.go" }
     ], {
-      provideDefinition: handleGoReference
+      provideDefinition: (doc, pos) => GoProvider.handleDefinition(doc, pos)
     }),
   ]
 

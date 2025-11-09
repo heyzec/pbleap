@@ -17,3 +17,20 @@ export function getProtoFileFromGoFile(goPath: string): string | undefined {
     }
   }
 }
+
+// This ignores types of the file
+export function getPartnerFile(path: string): string | undefined {
+  // Try proto to go
+  const goFile = getGoFileFromProtoFile(path);
+  if (goFile) {
+    return goFile;
+  }
+
+  // Try go to proto
+  const protoFile = getProtoFileFromGoFile(path);
+  if (protoFile) {
+    return protoFile;
+  }
+
+  return undefined;
+}
