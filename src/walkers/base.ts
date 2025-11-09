@@ -38,7 +38,6 @@ export abstract class WalkerFactory {
 export type Route = string[] | null
 
 export abstract class Walker {
-  // @ts-ignore
   private tree: Tree | null
 
   constructor(tree: Tree | null) {

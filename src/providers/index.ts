@@ -1,7 +1,5 @@
-import GoProvider from "./go";
-import ProtoProvider from "./proto"
+import { GoWalker, ProtoWalker } from '../walkers';
+import { Provider } from './base';
 
-export {
-  GoProvider,
-  ProtoProvider,
-}
+export const GoProvider = new Provider(GoWalker);
+export const ProtoProvider = new Provider(ProtoWalker);

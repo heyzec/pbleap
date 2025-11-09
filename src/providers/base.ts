@@ -8,7 +8,25 @@ import { getPartnerFile } from "../utils/files";
 import { GoWalker, ProtoWalker } from "../walkers";
 import { nodesToLocations } from "../utils/convert";
 
-export abstract class Provider {
+function getLanguageId(filename: string): string | null {
+  if (filename.endsWith('.pb.go')) {
+    return "go"
+  }
+  if (filename.endsWith('.proto')) {
+    return "proto"
+  }
+  return null
+}
+
+function getWalkerFactory(languageId: string): WalkerFactory | null {
+  const walkerMap = {
+    "proto": ProtoWalker,
+    "go": GoWalker,
+  }
+  return walkerMap[languageId as keyof typeof walkerMap] || null
+}
+
+export class Provider {
   thisWalkerFactory: WalkerFactory;
 
   constructor(walker: WalkerFactory) {
@@ -33,6 +51,7 @@ export abstract class Provider {
     const thisDocument = document
     const thisText = thisDocument.getText();
     const thisWalker = this.thisWalkerFactory.ingest(thisText)
+    console.log(thisDocument.languageId)
 
     const [r, c] = [position.line, position.character];
     const thisTree = thisWalker.getTree();
@@ -45,13 +64,15 @@ export abstract class Provider {
     const thatUri = vscode.Uri.joinPath(workspaceFolder.uri, partnerPath);
     const thatDocument = await vscode.workspace.openTextDocument(thatUri);
     const thatText = thatDocument.getText();
-    let thatWalkerFactory: WalkerFactory
-    if (partnerPath.endsWith('.go')) {
-      thatWalkerFactory = GoWalker
-    } else if (partnerPath.endsWith('.proto')) {
-      thatWalkerFactory = ProtoWalker
-    } else {
+
+    const partnerLang = getLanguageId(partnerPath);
+    if (!partnerLang) {
       vscode.window.showInformationMessage(`Unsupported partner file type for ${partnerPath}.`);
+      return [];
+    }
+    const thatWalkerFactory = getWalkerFactory(partnerLang);
+    if (!thatWalkerFactory) {
+      vscode.window.showInformationMessage(`No walker found for language ${partnerLang}.`);
       return [];
     }
     const thatWalker = thatWalkerFactory.ingest(thatText)
@@ -59,7 +80,6 @@ export abstract class Provider {
     const dualNode = this.getDualNode(thisNode, thisWalker, thatWalker);
 
     if (!dualNode) {
-      console.log("Dualnode is null")
       return []
     }
 
@@ -70,6 +90,9 @@ export abstract class Provider {
     return [];
   }
 
-  abstract getDualNode(thisNode: Node, thisWalker: Walker, thatWalker: Walker): Node | null;
+  getDualNode(thisNode: Node, thisWalker: Walker, thatWalker: Walker) {
+    const route = thisWalker.getRoute(thisNode)
+    return thatWalker.getNode(route)
+  }
 }
 
