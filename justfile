@@ -1,4 +1,4 @@
-extension-id := "templates.vscode-ext"
+extension-id := "heyzec.pbleap"
 
 install:
     npm run package
@@ -11,3 +11,8 @@ reinstall:
 
 dev:
     npm run watch
+
+wasm:
+    mkdir -p ./parsers || true
+    install -m 0644 $(nix build .#wasm-proto --no-link --print-out-paths)/tree-sitter-proto.wasm ./parsers/
+    install -m 0644 $(nix build .#wasm-go --no-link --print-out-paths)/tree-sitter-go.wasm ./parsers/

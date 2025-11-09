@@ -1,0 +1,5 @@
+{
+  "pbleap.protoGenMapping": {
+    "example.proto": "example.pb.go"
+  }
+}
