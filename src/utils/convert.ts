@@ -1,7 +1,5 @@
 import * as vscode from "vscode";
 
-// import type { Node } from "web-tree-sitter";
-
 export function nodesToLocations(
   nodes: /*(Node | null)[]*/ any,
   document: vscode.TextDocument
