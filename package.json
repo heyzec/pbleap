@@ -1,8 +1,8 @@
 {
-  "name": "vscode-ext",
-  "displayName": "Sample Extension",
+  "name": "pbleap",
+  "displayName": "PBLeap",
   "version": "0.0.1",
-  "publisher": "templates",
+  "publisher": "heyzec",
   "icon": "assets/icon.png",
   "engines": {
     "vscode": "^1.93.0"
@@ -12,12 +12,22 @@
     "*"
   ],
   "contributes": {
-    "commands": [
-      {
-        "command": "vscode-ext.helloWorld",
-        "title": "Hello World"
+    "configuration": {
+      "type": "object",
+      "title": "PBLeap Configuration",
+      "properties": {
+        "pbleap.protoGenMapping": {
+          "type": "object",
+          "description": "Map of protobuf paths to generated file paths.",
+          "default": {},
+          "additionalProperties": {
+            "type": [
+              "string"
+            ]
+          }
+        }
       }
-    ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
@@ -34,9 +44,13 @@
     "@vscode/vsce": "^3.7.0",
     "prettier": "^3.6.2",
     "source-map-support": "^0.5.21",
+    "tree-sitter-go": "^0.25.0",
     "ts-loader": "^9.5.4",
     "typescript": "^5.6.2",
     "webpack": "^5.102.1",
     "webpack-cli": "^6.0.1"
+  },
+  "dependencies": {
+    "web-tree-sitter": "^0.25.10"
   }
 }

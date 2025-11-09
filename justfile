@@ -1,4 +1,4 @@
-extension-id := "templates.vscode-ext"
+extension-id := "heyzec.pbleap"
 
 install:
     npm run package
