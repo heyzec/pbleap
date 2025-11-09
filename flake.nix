@@ -16,6 +16,8 @@
           packages = with pkgs; [
             nodejs
             typescript-language-server
+            just
+            entr
           ];
         };
     });

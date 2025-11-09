@@ -8,17 +8,20 @@ interface Extension {
 
 let ext: Extension = require("./extension");
 
+const managedDisposables: Set<vscode.Disposable> = new Set();
+
 export function activate(context: vscode.ExtensionContext) {
   vscode.window.registerUriHandler({
     handleUri(uri: vscode.Uri) {
-      console.log("===")
-      console.log(uri.path)
-      vscode.commands.executeCommand("workbench.action.reloadWindow")
+      if (uri.path === '/reload') {
+        vscode.commands.executeCommand("workbench.action.reloadWindow")
+      }
     }
   })
 
   const disposables = ext.activate(context);
   context.subscriptions.push(...disposables);
+  disposables.forEach(d => managedDisposables.add(d));
 
   const extPath = path.join(context.extensionPath, 'dist', 'extension.js');
 
@@ -27,10 +30,13 @@ export function activate(context: vscode.ExtensionContext) {
     delete require.cache[require.resolve(extPath)];
     ext = require(extPath);
 
-    context.subscriptions.forEach(disposable => disposable.dispose());
+    managedDisposables.forEach(disposable => disposable.dispose());
 
+    context.subscriptions.filter(d => !managedDisposables.has(d));
     const disposables = ext.activate(context);
-    context.subscriptions.push(...disposables);
+    managedDisposables.forEach(d => d.dispose());
+    managedDisposables.clear();
+    disposables.forEach(d => managedDisposables.add(d));
 
     vscode.window.showInformationMessage("Reloaded extension!");
   });

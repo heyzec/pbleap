@@ -4,9 +4,8 @@ import * as path from "path";
 import { Parser, Language } from 'web-tree-sitter';
 import type { Node } from "web-tree-sitter";
 
-const mapping = {
-  "scripts/model/model.proto": "model/model.pb.go",
-}
+// TODO: SHouldn be dynamic
+const mapping = vscode.workspace.getConfiguration("untitled").get<{ [key: string]: string }>("protoGenMapping") || {};
 
 let protoFileDocument
 
@@ -22,9 +21,8 @@ function getProtoFileFromGoFile(goPath: string): string | undefined {
   }
 }
 
-
-function nodesToLocations(nodes: Node[], document: vscode.TextDocument): vscode.Location[] {
-  return nodes.map(node => {
+function nodesToLocations(nodes: /*(Node | null)[]*/ any, document: vscode.TextDocument): vscode.Location[] {
+  return nodes.map((node: any) => {
     const startPos = new vscode.Position(node.startPosition.row, node.startPosition.column);
     const endPos = new vscode.Position(node.endPosition.row, node.endPosition.column);
     const range = new vscode.Range(startPos, endPos);
@@ -32,34 +30,33 @@ function nodesToLocations(nodes: Node[], document: vscode.TextDocument): vscode.
   })
 }
 
-function getGoStruct(root: Node, structName: string) {
-  let nodes = root.namedChildren.filter(node => node.type === 'type_declaration')
-  nodes = nodes.filter(node => node.namedChildren[0].childForFieldName("name")?.text === structName);
+function getGoStruct(root: /*Node*/ any, structName: string): Node | null {
+  let nodes = root.namedChildren.filter((node: any) => node.type === 'type_declaration')
+  nodes = nodes.filter((node: any) => node.namedChildren[0].childForFieldName("name")?.text === structName);
   return nodes[0];
 }
 
-function getGoField(root: Node, structName: string, fieldName: string) {
+function getGoField(root: Node, structName: string, fieldName: string): Node | null {
   const structNode = getGoStruct(root, structName);
-  let nodes = structNode.namedChildren[0].childForFieldName("type").namedChildren[0].namedChildren;
-  nodes = nodes.map(node => node.namedChildren.find(child => child.type === "field_identifier"))
-  nodes = nodes.filter(node => node.text === fieldName);
+  let nodes = structNode?.namedChildren[0]?.childForFieldName("type")?.namedChildren[0]?.namedChildren ?? [];
+  nodes = nodes.map(node => node?.namedChildren.find(child => child?.type === "field_identifier") ?? null);
+  nodes = nodes.filter(node => node?.text === fieldName);
   return nodes[0]
 }
 
 function getProtoStruct(root: Node, structName: string) {
   let nodes = root.namedChildren;
-  nodes = nodes.filter(node => node.type === 'message')
-  nodes = nodes.filter(node => node.child(1).text === structName);
+  nodes = nodes.filter(node => node?.type === 'message')
+  nodes = nodes.filter(node => node?.child(1)?.text === structName);
   return nodes[0];
 }
 
-function getProtoField(root: Node, structName: string, fieldName: string) {
+function getProtoField(root: Node, structName: string, fieldName: string): Node | null {
   const structNode = getProtoStruct(root, structName);
-  let nodes = structNode.child(2).namedChildren;
-  nodes = nodes.filter(node => node.type === 'field');
-  nodes = nodes.map(node => node.child(2));
-  nodes.forEach(node => console.log("Proto field node:", node.text));
-  return nodes.find(node => node.text === fieldName);
+  let nodes = structNode?.child(2)?.namedChildren ?? [];
+  nodes = nodes.filter(node => node?.type === 'field');
+  nodes = nodes.map(node => node?.child(2) ?? null);
+  return nodes.find(node => node?.text === fieldName) ?? null;
 }
 
 async function highlightNodes(nodes: Node[], doc: vscode.TextDocument) {
@@ -79,7 +76,7 @@ async function highlightNodes(nodes: Node[], doc: vscode.TextDocument) {
 }
 
 function printNode(node: any, indent = 0) {
-  const output = []
+  const output: string[] = []
   function recurse(node: any, indent = 0) {
     const padding = '  '.repeat(indent);
     let info = node.type;
@@ -128,25 +125,36 @@ async function initGoParser(context: vscode.ExtensionContext) {
 
 async function handleGoReference(document: vscode.TextDocument, position: vscode.Position): Promise<vscode.Location[]> {
   const tree = goParser.parse(document.getText());
-  const [r, c] = [position.line, position.character];
-  let node = tree.rootNode.descendantForPosition({ row: r, column: c }, { row: r, column: c });
+  if (!tree) {
+    return []
+  }
 
-  if (node.type !== "field_identifier") {
-    vscode.window.showInformationMessage(`Only supported on field_identifier, found ${node.type}`);
-    return
+  const [r, c] = [position.line, position.character];
+  let node: Node | null = tree.rootNode.descendantForPosition({ row: r, column: c }, { row: r, column: c });
+
+  if (!node || node.type !== "field_identifier") {
+    return []
   }
+
   const fieldName = node.text;
-  console.log(node.type);
-  node = node.parent.parent.parent.parent
-  if (node.type !== "type_spec") {
-    vscode.window.showInformationMessage(`Only supported on type_spec, found ${node.type}`);
-    return
+  if (!fieldName) {
+    return []
   }
-  const structName = node.child(0).text;
+
+  // Assumption: We can always find struct containing field
+  node = node.parent?.parent?.parent?.parent || null
+  if (!node || node.type !== "type_spec") {
+    return []
+  }
+
+  const structName = node.child(0)?.text;
+  if (!structName) {
+    return []
+  }
 
   const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
   if (!workspaceFolder) {
-    return undefined; // file is outside workspace
+    return []; // file is outside workspace
   }
   const goPath = path.relative(workspaceFolder.uri.fsPath, document.uri.fsPath)
   const protoPath = getProtoFileFromGoFile(goPath);
@@ -157,35 +165,42 @@ async function handleGoReference(document: vscode.TextDocument, position: vscode
 
   const protoFileUri = vscode.Uri.joinPath(workspaceFolder.uri, protoPath);
   /* const */ protoFileDocument = await vscode.workspace.openTextDocument(protoFileUri); // Make it global for debugging
+
   const protoTree = protoParser.parse(protoFileDocument.getText());
+  if (!protoTree) {
+    return []
+  }
+  console.log("Searching for field:", pascalToSnake(fieldName), "in message:", structName);
 
   const found = getProtoField(protoTree.rootNode, structName, pascalToSnake(fieldName));
   return nodesToLocations([found], protoFileDocument);
 }
 
 async function handleProtoReference(document: vscode.TextDocument, position: vscode.Position): Promise<vscode.Location[]> {
-  console.log("In handleProtoReference");
   const protoTree = protoParser.parse(document.getText());
 
   const [r, c] = [position.line, position.character];
 
-  let node = protoTree.rootNode.descendantForPosition({ row: r, column: c }, { row: r, column: c });
-  const identifierName = node.text;
-  if (node.type !== "identifier") {
-    vscode.window.showInformationMessage(`Only supported on identifier, found ${node.type}`);
+  let node = protoTree?.rootNode.descendantForPosition({ row: r, column: c }, { row: r, column: c });
+  const identifierName = node?.text;
+  if (!node || !node.type || node.type !== "identifier" || !identifierName) {
+    vscode.window.showInformationMessage(`Only supported on identifier, found ${node?.type}`);
     return [];
   }
 
   // Assumption: We can always find message containing identifier
-  while (node.type !== "message") {
-    node = node.parent;
+  while (node?.type !== "message") {
+    node = node?.parent;
   }
 
-  const messageName = node.child(1).text;
+  const messageName = node?.child(1)?.text;
+  if (!messageName) {
+    return []; // file is outside workspace
+  }
 
   const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
   if (!workspaceFolder) {
-    return undefined; // file is outside workspace
+    return []; // file is outside workspace
   }
   const protoPath = path.relative(workspaceFolder.uri.fsPath, document.uri.fsPath)
   const goPath = getGoFileFromProtoFile(protoPath);
@@ -199,7 +214,9 @@ async function handleProtoReference(document: vscode.TextDocument, position: vsc
   console.log("Going to parse!!!!")
   // console.log("Go file text:", goFileDocument.getText().slice(0, 200)); // Log first 200 characters
   const goTree = goParser.parse(goFileDocument.getText());
-  console.log("Is goTree valid?", goTree.rootNode !== null);
+  if (!goTree) {
+    return []
+  }
 
   console.log("Searching for field:", snakeToPascal(identifierName), "in message:", messageName);
   const found = getGoField(goTree.rootNode, messageName, snakeToPascal(identifierName));
@@ -209,7 +226,6 @@ async function handleProtoReference(document: vscode.TextDocument, position: vsc
 }
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log("Initializing parsers...");
   Parser.init().then(() => {
     initProtoParser(context)
     initGoParser(context)
@@ -242,7 +258,6 @@ export function activate(context: vscode.ExtensionContext) {
     }),
   ]
 
-  console.log("Subscriptions created:", subscriptions.length);
   disposables.push(...subscriptions);
 
   return disposables.map(d => ({
