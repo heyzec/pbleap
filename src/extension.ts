@@ -1,18 +1,10 @@
 import * as vscode from "vscode";
 
-import { Parser, Language } from 'web-tree-sitter';
-
 import { WalkerFactory } from "./walkers/base";
 import { GoProvider, ProtoProvider } from "./handlers";
 
 export function activate(context: vscode.ExtensionContext) {
   WalkerFactory.globalSetup(context.extensionPath);
-  // Parser.init().then(() => {
-  //   initProtoParser(context)
-  //   initGoParser(context)
-  // }).catch(err => {
-  //   console.error("Failed to initialize parsers:", err);
-  // });
 
   const disposables: vscode.Disposable[] = [];
 
@@ -44,10 +36,5 @@ export function activate(context: vscode.ExtensionContext) {
 
   disposables.push(...subscriptions);
 
-  return disposables.map(d => ({
-    dispose: () => {
-      console.log('Disposable.dispose() called!');
-      d.dispose();
-    }
-  }));
+  return disposables
 }

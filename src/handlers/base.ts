@@ -56,9 +56,7 @@ export abstract class Provider {
     }
     const thatWalker = thatWalkerFactory.ingest(thatText)
 
-    console.log("thisNode is", thisNode.text);
     const dualNode = this.getDualNode(thisNode, thisWalker, thatWalker);
-    console.log("Got dual node:", dualNode);
 
     return nodesToLocations([dualNode], thatDocument)
   }
@@ -67,8 +65,6 @@ export abstract class Provider {
     return [];
   }
 
-  getDualNode(thisNode: Node, thisWalker: Walker, thatWalker: Walker): Node | null {
-    throw new Error("Not implemented");
-  }
+  abstract getDualNode(thisNode: Node, thisWalker: Walker, thatWalker: Walker): Node | null;
 }
 
