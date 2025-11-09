@@ -1,7 +1,7 @@
 import * as path from "path";
 
 import { Parser, Language } from 'web-tree-sitter';
-import type { Tree } from "web-tree-sitter";
+import type { Tree, Node } from "web-tree-sitter";
 
 export abstract class WalkerFactory {
   private static extensionPath: string;
@@ -25,7 +25,6 @@ export abstract class WalkerFactory {
   }
 
   static async setup(factory: WalkerFactory) {
-    const wasmPath = factory.getWasmPath()
     const Lang = await Language.load(path.join(WalkerFactory.extensionPath, "dist", factory.getWasmPath()));
     const parser = new Parser()
     parser.setLanguage(Lang);
@@ -36,7 +35,9 @@ export abstract class WalkerFactory {
 
 }
 
-export class Walker {
+export type Route = string[] | null
+
+export abstract class Walker {
   // @ts-ignore
   private tree: Tree | null
 
@@ -47,4 +48,8 @@ export class Walker {
   getTree() {
     return this.tree
   }
+
+  abstract getRoute(node: Node): Route;
+
+  abstract getNode(route: Route): Node | null;
 }

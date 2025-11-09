@@ -58,6 +58,11 @@ export abstract class Provider {
 
     const dualNode = this.getDualNode(thisNode, thisWalker, thatWalker);
 
+    if (!dualNode) {
+      console.log("Dualnode is null")
+      return []
+    }
+
     return nodesToLocations([dualNode], thatDocument)
   }
 
