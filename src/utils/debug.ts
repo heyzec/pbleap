@@ -1,25 +1,46 @@
 import * as vscode from "vscode";
 import type { Node } from "web-tree-sitter";
 
-async function highlightNodes(nodes: Node[], doc: vscode.TextDocument) {
+export async function highlightNodes(
+  nodes: (Node | null | undefined)[],
+  doc: string
+) {
   // hsl(x 100% 25%)
   // x =          0deg       90deg      180deg     270deg
   const COLORS = ["#800000", "#408000", "#008080", "#400080"];
-  const editor = await vscode.window.showTextDocument(doc);
-  nodes.forEach((node, index) => {
-    const startPos = new vscode.Position(
-      node.startPosition.row,
-      node.startPosition.column
-    );
-    const endPos = new vscode.Position(
-      node.endPosition.row,
-      node.endPosition.column
-    );
-    const range = new vscode.Range(startPos, endPos);
-    const dec = vscode.window.createTextEditorDecorationType({
-      backgroundColor: COLORS[index % COLORS.length],
+
+  const uris: vscode.Uri[] = [];
+  vscode.window.tabGroups.all.forEach((tabGroup) => {
+    tabGroup.tabs.forEach((tab) => {
+      if (tab.input instanceof vscode.TabInputText) {
+        uris.push(tab.input.uri);
+      }
     });
-    editor.setDecorations(dec, [range]);
+  });
+  const path = uris.find((uri) => uri.path.endsWith(doc));
+  if (!path) {
+    vscode.window.showErrorMessage(`Cannot find ${doc}`);
+    return;
+  }
+
+  const document = await vscode.workspace.openTextDocument(path);
+  const editor = await vscode.window.showTextDocument(document);
+  nodes.forEach((node, index) => {
+    if (node) {
+      const startPos = new vscode.Position(
+        node.startPosition.row,
+        node.startPosition.column
+      );
+      const endPos = new vscode.Position(
+        node.endPosition.row,
+        node.endPosition.column
+      );
+      const range = new vscode.Range(startPos, endPos);
+      const dec = vscode.window.createTextEditorDecorationType({
+        backgroundColor: COLORS[index % COLORS.length],
+      });
+      editor.setDecorations(dec, [range]);
+    }
   });
 }
 
