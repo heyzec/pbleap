@@ -35,7 +35,12 @@ export abstract class WalkerFactory {
 
 }
 
-export type Route = string[] | null
+export interface Step {
+  type: "message" | "field" | "enum" | "enum_field";
+  name: string;
+}
+
+export type Route = Step[] | null
 
 export abstract class Walker {
   private tree: Tree | null

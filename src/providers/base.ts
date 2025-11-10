@@ -51,7 +51,6 @@ export class Provider {
     const thisDocument = document
     const thisText = thisDocument.getText();
     const thisWalker = this.thisWalkerFactory.ingest(thisText)
-    console.log(thisDocument.languageId)
 
     const [r, c] = [position.line, position.character];
     const thisTree = thisWalker.getTree();
@@ -76,6 +75,7 @@ export class Provider {
       return [];
     }
     const thatWalker = thatWalkerFactory.ingest(thatText)
+    console.log(thisNode.type)
 
     const dualNode = this.getDualNode(thisNode, thisWalker, thatWalker);
 
@@ -92,6 +92,7 @@ export class Provider {
 
   getDualNode(thisNode: Node, thisWalker: Walker, thatWalker: Walker) {
     const route = thisWalker.getRoute(thisNode)
+    console.log("Computed route:", route)
     return thatWalker.getNode(route)
   }
 }

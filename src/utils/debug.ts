@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import type { Node } from "web-tree-sitter";
 
-async function highlightNodes(nodes: Node[], doc: vscode.TextDocument) {
+export async function highlightNodes(nodes: Node[], doc: vscode.TextDocument) {
   // hsl(x 100% 25%)
   // x =          0deg       90deg      180deg     270deg
   const COLORS = ["#800000", "#408000", "#008080", "#400080"]
