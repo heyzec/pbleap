@@ -82,7 +82,8 @@ class GoWalker extends Walker {
         const enumName = constType.slice(prefix.length + 1); // +1 to skip the underscore
         const route: Route = prefix.split("_").map(part => ({ type: "message", name: part }))
         route.push({ type: "enum", name: enumName })
-        route.push({ type: "enum_field", name: pascalToSnake(enumField) })
+
+        route.push({ type: "enum_field", name: enumField })
         return route
       }
     }

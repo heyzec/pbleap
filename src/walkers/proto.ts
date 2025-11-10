@@ -82,10 +82,6 @@ class ProtoWalker extends Walker {
       nodes = node!.child(2)!.children.slice(1, -1) // message_body: skip { }
       console.log(`3. Loop ${i}:`, `First child type: ${nodes[0]?.type}`, `Text: ${nodes[0]?.text}`)
 
-      // const document = vscode.window.visibleTextEditors.map(editor => editor.document).find(doc => doc.uri.fsPath.endsWith("sand.proto"))
-      // if (document) {
-      //   highlightNodes(nodes as any, document as any);
-      // }
       i += 1
     }
 
@@ -103,14 +99,22 @@ class ProtoWalker extends Walker {
 
       let node = nodes.find(node => {
         console.log("Checking enum node:", node?.child(1)?.text, "against", route[i].name)
-        return node?.child(1)?.text === route[i].name
+        const x = node?.child(1)?.text === route[i].name
+        console.log("Result:", x)
+        return x
       })!
       nodes = node!.children
 
       if (i + 1 < route.length) {
         nodes = node.child(2)!.namedChildren
+        nodes = nodes.filter(node => node?.type === 'enum_field')
+        // const document = vscode.window.visibleTextEditors.map(editor => editor.document).find(doc => doc.uri.fsPath.endsWith("plus.proto"))
+        // if (document) {
+        //   highlightNodes(nodes as any, document as any);
+        // }
         nodes = nodes.filter(node => {
-          console.log(`Testing enum field node:`, node!.child(0)!.text, "against", route[i + 1].name)
+          console.log("Maybe i crash")
+          console.log(`Testing enum field node:`, node?.child(0)?.text, "against", route[i + 1].name)
           return node!.child(0)!.text.toLowerCase() === route[i + 1].name.toLowerCase()
         })
         const found = nodes[0];
