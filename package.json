@@ -49,7 +49,7 @@
     "format": "prettier . --write",
     "watch": "webpack --watch",
     "vscode:prepublish": "npm run build",
-    "package": "vsce package --no-dependencies --skip-license"
+    "package": "vsce package --no-dependencies"
   },
   "devDependencies": {
     "@types/node": "^22.5.4",

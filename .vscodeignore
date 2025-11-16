@@ -7,3 +7,4 @@
 # Whitelist what you need (package.json and README.md included by default)
 !dist/*
 !assets/*
+!LICENSE
