@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          release-type: node
+      - uses: actions/checkout@v5
+        if: ${{ steps.release.outputs.releases_created == 'true' }}
+      - uses: actions/setup-node@v6
+        if: ${{ steps.release.outputs.releases_created == 'true' }}
+        with:
+          node-version: '22'
+      - uses: cachix/install-nix-action@v31
+        if: ${{ steps.release.outputs.releases_created == 'true' }}
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: extractions/setup-just@v3
+        if: ${{ steps.release.outputs.releases_created == 'true' }}
+      - name: Installing node dependencies
+        if: ${{ steps.release.outputs.releases_created == 'true' }}
+        run: npm ci --silent
+      - name: Getting WebAssembly binaries
+        if: ${{ steps.release.outputs.releases_created == 'true' }}
+        run: just wasm
+      - name: Pacakage extension as .vsix
+        if: ${{ steps.release.outputs.releases_created == 'true' }}
+        run: npx vsce package -o pbleap-${{steps.release.outputs.tag_name}}.vsix
+      - name: Upload release artifact
+        if: ${{ steps.release.outputs.releases_created == 'true' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run:
+          gh release upload ${{ steps.release.outputs.tag_name }} pbleap-${{ steps.release.outputs.tag_name }}.vsix
+      - name: vsce publish
+        if: ${{ steps.release.outputs.releases_created == 'true' }}
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_TOKEN }}
+        run: npx vsce publish

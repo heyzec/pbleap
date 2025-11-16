@@ -12,6 +12,7 @@ reinstall:
 dev:
     npm run watch
 
+# Also used by Nix on Github Actions
 wasm:
     mkdir -p ./parsers || true
     install -m 0644 $(nix build .#wasm-proto --no-link --print-out-paths)/tree-sitter-proto.wasm ./parsers/
