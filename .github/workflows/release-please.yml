@@ -1,0 +1,53 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          release-type: node
+      - uses: actions/checkout@v5
+        if: ${{ steps.release.outputs.releases_created }}
+      - uses: actions/setup-node@v6
+        if: ${{ steps.release.outputs.releases_created }}
+        with:
+          node-version: '22'
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: extractions/setup-just@v3
+      - name: npm install
+        if: ${{ steps.release.outputs.releases_created }}
+        run: npm ci --silent
+      - name: just wasm
+        if: ${{ steps.release.outputs.releases_created }}
+        run: just wasm
+      - name: vsce package
+        if: ${{ steps.release.outputs.releases_created }}
+        run: npx vsce package -o pbleap-${{steps.release.outputs.tag_name}}.vsix
+      - name: Upload Release Artifact
+        if: ${{ steps.release.outputs.releases_created }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run:
+          gh release upload ${{ steps.release.outputs.tag_name }} pbleap-${{
+          steps.release.outputs.tag_name }}.vsix
+      - name: vsce publish
+        if: ${{ steps.release.outputs.releases_created }}
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_TOKEN }}
+        run: npx vsce publish
