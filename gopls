@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+exec /nix/store/c8jxsih8yy2rnncdmx2hyraizf689nvp-nodejs-22.14.0/bin/node "$(dirname "$0")/bridge/dist/main.js" "$@"

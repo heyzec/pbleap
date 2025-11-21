@@ -2,7 +2,7 @@ syntax = "proto2";
 
 package example;
 
-option go_package = "./";  // generate in current directory
+option go_package = "./;main";  // generate in current directory
 
 // To generate Go code, run the following commands in containing folder
 // protoc --go_out=. example.proto

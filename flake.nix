@@ -24,6 +24,8 @@
             nodejs
             typescript-language-server
             just
+            go
+            gopls
           ];
         };
     });

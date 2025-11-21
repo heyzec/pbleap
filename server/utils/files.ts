@@ -1,11 +1,7 @@
-import * as vscode from "vscode";
+import { protoGenMapping } from "../lsp";
 
-function getMapping() {
-  return (
-    vscode.workspace
-      .getConfiguration("pbleap")
-      .get<{ [key: string]: string }>("protoGenMapping") || {}
-  );
+function getMapping(): Record<string, string> {
+  return protoGenMapping;
 }
 
 export function getGoFileFromProtoFile(protoPath: string): string | undefined {
