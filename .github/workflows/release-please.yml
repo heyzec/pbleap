@@ -37,8 +37,8 @@ jobs:
         run: npm ci --silent
       - name: Getting WebAssembly binaries
         if: ${{ steps.release.outputs.releases_created == 'true' }}
-        run: just wasm
-      - name: Pacakage extension as .vsix
+        run: just parsers
+      - name: Package extension as .vsix
         if: ${{ steps.release.outputs.releases_created == 'true' }}
         run: npx vsce package -o pbleap-${{steps.release.outputs.tag_name}}.vsix
       - name: Upload release artifact
@@ -47,7 +47,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run:
           gh release upload ${{ steps.release.outputs.tag_name }} pbleap-${{ steps.release.outputs.tag_name }}.vsix
-      - name: vsce publish
+      - name: Publish to VS Code Marketplace
         if: ${{ steps.release.outputs.releases_created == 'true' }}
         env:
           VSCE_PAT: ${{ secrets.VSCE_TOKEN }}

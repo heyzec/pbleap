@@ -24,6 +24,10 @@
             nodejs
             typescript-language-server
             just
+            protobuf
+            protoc-gen-go
+            go
+            gopls
           ];
         };
     });

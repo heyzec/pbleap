@@ -1,7 +1,7 @@
 # PBLeap
 
 <p align="center">
-   <img src="./assets/icon.png" width="150">
+   <img src="./client/assets/icon.png" width="150">
 </p>
 
 A Visual Studio Code extension to quickly navigate from protobuf files to generated code.
@@ -20,6 +20,13 @@ This setting has to be edited in JSON format. The key is the protobuf filename a
 ```json
 "pbleap.protoGenMapping": {
     "example.proto": "example.pb.go"
+}
+```
+
+To improve results when leaping from appplication code to generated code, you can use wrapper gopls provided:
+```json
+"go.alternateTools": {
+ "gopls": "/home/<your-username>/.config/pbleap/gopls"
 }
 ```
 
@@ -42,7 +49,7 @@ This extension uses [Tree-sitter](https://github.com/tree-sitter/tree-sitter) to
 
 If you have Nix, you can instead run
 ```sh
-just wasm
+just parsers
 ```
 which will build and copy the required WASM files to `dist/`.
 
