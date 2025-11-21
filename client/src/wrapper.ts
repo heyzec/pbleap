@@ -23,9 +23,15 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(...disposables);
   disposables.forEach((d) => managedDisposables.add(d));
 
-  const extPath = path.join(context.extensionPath, "dist", "extension.js");
+  const extPath = path.join(
+    context.extensionPath,
+    "client",
+    "dist",
+    "extension.js"
+  );
 
   console.log(`Watching for changes in ${extPath}`);
+
   fs.watchFile(extPath, () => {
     delete require.cache[require.resolve(extPath)];
     ext = require(extPath);

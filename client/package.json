@@ -1,0 +1,20 @@
+{
+  "scripts-info": {
+    "build": "Creates all files required for the extension client",
+    "watch": "Rebuild source code in this repo on change"
+  },
+  "scripts": {
+    "build": "node ./esbuild.js",
+    "watch": "node ./esbuild.js --watch"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.106.1",
+    "esbuild": "^0.27.0",
+    "ts-loader": "^9.5.4",
+    "webpack": "^5.103.0",
+    "webpack-cli": "^6.0.1"
+  }
+}

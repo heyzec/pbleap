@@ -1,22 +1,13 @@
-import * as vscode from "vscode";
 import * as path from "path";
+import { Location, Position } from "vscode-languageserver-types";
+import * as fs from "fs/promises";
 
 import type { Node } from "web-tree-sitter";
 
 import { Walker, WalkerFactory } from "../walkers/base";
 import { getPartnerFile } from "../utils/files";
 import { GoWalker, ProtoWalker } from "../walkers";
-import { nodesToLocations } from "../utils/convert";
-
-function getLanguageId(filename: string): string | null {
-  if (filename.endsWith(".pb.go")) {
-    return "go";
-  }
-  if (filename.endsWith(".proto")) {
-    return "proto";
-  }
-  return null;
-}
+import { getLanguageId, nodesToLocations } from "../utils/convert";
 
 function getWalkerFactory(languageId: string): WalkerFactory | null {
   const walkerMap = {
@@ -34,30 +25,31 @@ export class Provider {
   }
 
   async handleDefinition(
-    document: vscode.TextDocument,
-    position: vscode.Position
-  ): Promise<vscode.Location[]> {
-    const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
-    if (!workspaceFolder) {
-      vscode.window.showInformationMessage(`No workspace found.`);
+    workspacePath: string,
+    documentPath: string,
+    position: Position
+  ): Promise<Location[]> {
+    if (!workspacePath) {
+      console.log(`No workspace found.`);
       return [];
     }
 
-    const thisPath = path.relative(
-      workspaceFolder.uri.fsPath,
-      document.uri.fsPath
+    console.log(
+      `Handling definition for ${documentPath} with workspace ${workspacePath}`
     );
+    const thisPath = path.relative(workspacePath, documentPath);
     const partnerPath = getPartnerFile(thisPath);
     if (!partnerPath) {
-      vscode.window.showInformationMessage(
-        `No mapping found for ${thisPath} to partner file.`
-      );
+      console.log(`No mapping found for ${thisPath} to partner file.`);
       return [];
     }
+    console.log(partnerPath);
 
     // 1. This walker
-    const thisDocument = document;
-    const thisText = thisDocument.getText();
+    const thisText = await fs.readFile(
+      path.join(workspacePath, thisPath),
+      "utf8"
+    );
     const thisWalker = this.thisWalkerFactory.ingest(thisText);
 
     const [r, c] = [position.line, position.character];
@@ -70,23 +62,19 @@ export class Provider {
       return [];
     }
 
+    console.log("That walk");
     // 2. That walker
-    const thatUri = vscode.Uri.joinPath(workspaceFolder.uri, partnerPath);
-    const thatDocument = await vscode.workspace.openTextDocument(thatUri);
-    const thatText = thatDocument.getText();
+    const thatPath = path.join(workspacePath, partnerPath);
+    const thatText = await fs.readFile(thatPath, "utf8");
 
     const partnerLang = getLanguageId(partnerPath);
     if (!partnerLang) {
-      vscode.window.showInformationMessage(
-        `Unsupported partner file type for ${partnerPath}.`
-      );
+      console.log(`Unsupported partner file type for ${partnerPath}.`);
       return [];
     }
     const thatWalkerFactory = getWalkerFactory(partnerLang);
     if (!thatWalkerFactory) {
-      vscode.window.showInformationMessage(
-        `No walker found for language ${partnerLang}.`
-      );
+      console.log(`No walker found for language ${partnerLang}.`);
       return [];
     }
 
@@ -97,15 +85,15 @@ export class Provider {
       return [];
     }
 
-    return nodesToLocations([dualNode], thatDocument);
+    return nodesToLocations([dualNode], thatPath);
   }
 
-  async handleReference(
-    document: vscode.TextDocument,
-    position: vscode.Position
-  ): Promise<vscode.Location[]> {
-    return [];
-  }
+  // async handleReference(
+  //   document: vscode.TextDocument,
+  //   position: .Position
+  // ): Promise<vscode.Location[]> {
+  //   return [];
+  // }
 
   getDualNode(thisNode: Node, thisWalker: Walker, thatWalker: Walker) {
     const route = thisWalker.getRoute(thisNode);

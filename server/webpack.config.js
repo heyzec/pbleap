@@ -10,7 +10,7 @@ const extensionConfig = {
   target: "node",
   mode: "none",
   entry: {
-    extension: "./src/extension.ts",
+    main: "./main.ts",
   },
   output: {
     filename: "[name].js",
