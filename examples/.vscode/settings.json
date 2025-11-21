@@ -1,5 +1,8 @@
 {
   "pbleap.protoGenMapping": {
     "example.proto": "example.pb.go"
+  },
+  "go.alternateTools": {
+    "gopls": "/home/heyzec/.config/pbleap/gopls"
   }
 }

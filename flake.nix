@@ -23,7 +23,11 @@
           packages = with pkgs; [
             nodejs
             typescript-language-server
-            just
+            # just
+            protobuf
+            protoc-gen-go
+            go
+            gopls
           ];
         };
     });

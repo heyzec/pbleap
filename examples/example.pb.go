@@ -4,7 +4,7 @@
 // 	protoc        v6.30.2
 // source: example.proto
 
-package __
+package main
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -282,7 +282,7 @@ const file_example_proto_rawDesc = "" +
 	"\x06Status\x12\n" +
 	"\n" +
 	"\x06ACTIVE\x10\x00\x12\f\n" +
-	"\bINACTIVE\x10\x01B\x04Z\x02./"
+	"\bINACTIVE\x10\x01B\tZ\a./;main"
 
 var (
 	file_example_proto_rawDescOnce sync.Once

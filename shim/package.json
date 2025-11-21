@@ -1,0 +1,15 @@
+{
+  "name": "shim",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "node ./esbuild.js",
+    "watch": "node ./esbuild.js --watch"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "vscode-jsonrpc": "^9.0.0"
+  }
+}

@@ -1,7 +1,7 @@
 # PBLeap
 
 <p align="center">
-   <img src="./assets/icon.png" width="150">
+   <img src="./client/assets/icon.png" width="150">
 </p>
 
 A Visual Studio Code extension to quickly navigate from protobuf files to generated code.
