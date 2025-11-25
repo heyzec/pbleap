@@ -8,6 +8,7 @@ import { Walker, WalkerFactory } from "../walkers/base";
 import { getPartnerFile } from "../utils/files";
 import { GoWalker, ProtoWalker } from "../walkers";
 import { getLanguageId, nodesToLocations } from "../utils/convert";
+import { Shim } from "../shims/base";
 
 function getWalkerFactory(languageId: string): WalkerFactory | null {
   const walkerMap = {
@@ -84,6 +85,10 @@ export class Provider {
     if (!dualNode) {
       return [];
     }
+
+    const shim = new Shim();
+    console.log("Creating shim")
+    shim.supplement(documentPath, position, dualNode);
 
     return nodesToLocations([dualNode], thatPath);
   }

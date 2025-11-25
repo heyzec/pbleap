@@ -18,7 +18,6 @@ export function run() {
   let workspaceRoot: string | null = null;
 
   connection.onInitialize(async (params: InitializeParams) => {
-    console.log(params);
     workspaceRoot = params.workspaceFolders?.[0]?.uri ?? null;
     protoGenMapping = params.initializationOptions.protoGenMapping;
 

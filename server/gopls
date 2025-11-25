@@ -1,0 +1,12 @@
+#!/bin/sh
+cd $(dirname "$0")
+# echo $@ >> tmp
+# if [ "$1" = "version" ]; then
+#     if [ "$2" = "-json" ]; then
+#         cat gopls-version-json
+#         exit 0
+#     fi
+#     echo "golang.org/x/tools/gopls v0.20.0"
+#     exit 0
+# fi
+exec node ./dist/main.js
