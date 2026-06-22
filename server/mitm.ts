@@ -31,7 +31,8 @@ export function mitm() {
     new rpc.StreamMessageWriter(process.stdout)
   );
 
-  const socket = net.connect(3737, "127.0.0.1");
+  const SOCKET_PATH = process.env.XDG_RUNTIME_DIR ?? process.env.TMPDIR ?? "/tmp";
+  const socket = net.connect(`${SOCKET_PATH}/pbleap.sock`);
 
   const serverConn = rpc.createMessageConnection(
     new rpc.StreamMessageReader(socket),

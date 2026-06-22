@@ -12,7 +12,8 @@ export class Shim {
   }
 
   static async create() {
-    const socket = net.connect(3737, "127.0.0.1");
+    const SOCKET_PATH = process.env.XDG_RUNTIME_DIR ?? process.env.TMPDIR ?? "/tmp";
+    const socket = net.connect(`${SOCKET_PATH}/pbleap.sock`);
 
     const conn = rpc.createMessageConnection(
       new rpc.StreamMessageReader(socket),

@@ -20,9 +20,17 @@ function getWalkerFactory(languageId: string): WalkerFactory | null {
 
 export class Provider {
   thisWalkerFactory: WalkerFactory;
+  private shim: Promise<Shim> | null = null;
 
   constructor(walker: WalkerFactory) {
     this.thisWalkerFactory = walker;
+  }
+
+  private getShim(): Promise<Shim> {
+    if (!this.shim) {
+      this.shim = Shim.create();
+    }
+    return this.shim;
   }
 
   private async resolveDualNode(
@@ -95,7 +103,7 @@ export class Provider {
     // code smell: base.ts shouldn't care about Go
     if (isPbGo(documentPath)) {
       console.log(`[references] querying gopls directly: file=${documentPath} position=${position.line}:${position.character}`);
-      const shim = await Shim.create();
+      const shim = await this.getShim();
       return shim.references(documentPath, position);
     }
 
