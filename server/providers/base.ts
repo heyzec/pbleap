@@ -25,80 +25,86 @@ export class Provider {
     this.thisWalkerFactory = walker;
   }
 
+  private async resolveDualNode(
+    workspacePath: string,
+    documentPath: string,
+    position: Position
+  ): Promise<{ dualNode: Node; partnerAbsPath: string } | null> {
+    if (!workspacePath) {
+      console.log(`No workspace found.`);
+      return null;
+    }
+
+    console.log(`Resolving dual node for ${documentPath} at ${position.line}:${position.character}`);
+
+    const thisPath = path.relative(workspacePath, documentPath);
+    const partnerPath = getPartnerFile(thisPath);
+    if (!partnerPath) {
+      console.log(`No mapping found for ${thisPath} to partner file.`);
+      return null;
+    }
+
+    const thisText = await fs.readFile(path.join(workspacePath, thisPath), "utf8");
+    const thisWalker = this.thisWalkerFactory.ingest(thisText);
+
+    const [r, c] = [position.line, position.character];
+    const thisTree = thisWalker.getTree();
+    const thisNode = thisTree?.rootNode.descendantForPosition(
+      { row: r, column: c },
+      { row: r, column: c }
+    );
+    if (!thisNode) return null;
+
+    const partnerAbsPath = path.join(workspacePath, partnerPath);
+    const thatText = await fs.readFile(partnerAbsPath, "utf8");
+
+    const partnerLang = getLanguageId(partnerPath);
+    if (!partnerLang) {
+      console.log(`Unsupported partner file type for ${partnerPath}.`);
+      return null;
+    }
+    const thatWalkerFactory = getWalkerFactory(partnerLang);
+    if (!thatWalkerFactory) {
+      console.log(`No walker found for language ${partnerLang}.`);
+      return null;
+    }
+
+    const thatWalker = thatWalkerFactory.ingest(thatText);
+    const dualNode = this.getDualNode(thisNode, thisWalker, thatWalker);
+    if (!dualNode) return null;
+
+    return { dualNode, partnerAbsPath };
+  }
+
   async handleDefinition(
     workspacePath: string,
     documentPath: string,
     position: Position
   ): Promise<Location[]> {
-    if (!workspacePath) {
-      console.log(`No workspace found.`);
-      return [];
-    }
-
-    console.log(
-      `Handling definition for ${documentPath} with workspace ${workspacePath}`
-    );
-    const thisPath = path.relative(workspacePath, documentPath);
-    const partnerPath = getPartnerFile(thisPath);
-    if (!partnerPath) {
-      console.log(`No mapping found for ${thisPath} to partner file.`);
-      return [];
-    }
-    console.log(partnerPath);
-
-    // 1. This walker
-    const thisText = await fs.readFile(
-      path.join(workspacePath, thisPath),
-      "utf8"
-    );
-    const thisWalker = this.thisWalkerFactory.ingest(thisText);
-
-    const [r, c] = [position.line, position.character];
-    const thisTree = thisWalker.getTree();
-    let thisNode = thisTree?.rootNode.descendantForPosition(
-      { row: r, column: c },
-      { row: r, column: c }
-    );
-    if (!thisNode) {
-      return [];
-    }
-
-    console.log("That walk");
-    // 2. That walker
-    const thatPath = path.join(workspacePath, partnerPath);
-    const thatText = await fs.readFile(thatPath, "utf8");
-
-    const partnerLang = getLanguageId(partnerPath);
-    if (!partnerLang) {
-      console.log(`Unsupported partner file type for ${partnerPath}.`);
-      return [];
-    }
-    const thatWalkerFactory = getWalkerFactory(partnerLang);
-    if (!thatWalkerFactory) {
-      console.log(`No walker found for language ${partnerLang}.`);
-      return [];
-    }
-
-    const thatWalker = thatWalkerFactory.ingest(thatText);
-    const dualNode = this.getDualNode(thisNode, thisWalker, thatWalker);
-
-    if (!dualNode) {
-      return [];
-    }
-
-    const shim = new Shim();
-    console.log("Creating shim")
-    shim.supplement(documentPath, position, dualNode);
-
-    return nodesToLocations([dualNode], thatPath);
+    const resolved = await this.resolveDualNode(workspacePath, documentPath, position);
+    if (!resolved) return [];
+    const { dualNode, partnerAbsPath } = resolved;
+    return nodesToLocations([dualNode], partnerAbsPath);
   }
 
-  // async handleReference(
-  //   document: vscode.TextDocument,
-  //   position: .Position
-  // ): Promise<vscode.Location[]> {
-  //   return [];
-  // }
+  async handleReferences(
+    workspacePath: string,
+    documentPath: string,
+    position: Position
+  ): Promise<Location[]> {
+    const resolved = await this.resolveDualNode(workspacePath, documentPath, position);
+    if (!resolved) return [];
+    const { dualNode, partnerAbsPath } = resolved;
+
+    const gopls_position = {
+      line: dualNode.startPosition.row,
+      character: dualNode.startPosition.column,
+    };
+    console.log(`[references] querying gopls: file=${partnerAbsPath} position=${gopls_position.line}:${gopls_position.character} node_type=${dualNode.type} node_text="${dualNode.text}"`);
+
+    const shim = await Shim.create();
+    return shim.references(partnerAbsPath, gopls_position);
+  }
 
   getDualNode(thisNode: Node, thisWalker: Walker, thatWalker: Walker) {
     const route = thisWalker.getRoute(thisNode);

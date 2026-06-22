@@ -2,6 +2,7 @@ import {
   createConnection,
   InitializeParams,
   InitializeResult,
+  TextDocumentPositionParams,
 } from "vscode-languageserver/node";
 
 import { GoProvider, ProtoProvider } from "./providers";
@@ -23,6 +24,7 @@ export function run() {
 
     const result: InitializeResult = {
       capabilities: {
+        definitionProvider: true,
         referencesProvider: true,
       },
     };
@@ -41,20 +43,30 @@ export function run() {
     return providerMap[languageId];
   }
 
-  connection.onReferences(async (params) => {
+  function resolveParams(params: TextDocumentPositionParams) {
     const languageId = getLanguageId(params.textDocument.uri);
-    if (!languageId) {
+    if (!languageId){
       console.log(`Unrecognised language ID: ${params.textDocument.uri}`);
-      return [];
+      return null;
     }
+    return {
+      provider: getProvider(languageId),
+      workspacePath: workspaceRoot!.slice(7),
+      documentPath: params.textDocument.uri.slice(7),
+      position: params.position,
+    };
+  }
 
-    const Provider = getProvider(languageId);
-    const results = await Provider.handleDefinition(
-      workspaceRoot!.slice(7),
-      params.textDocument.uri.slice(7),
-      params.position
-    );
-    return results;
+  connection.onDefinition(async (params) => {
+    const r = resolveParams(params);
+    if (!r) return [];
+    return r.provider.handleDefinition(r.workspacePath, r.documentPath, r.position);
+  });
+
+  connection.onReferences(async (params) => {
+    const r = resolveParams(params);
+    if (!r) return [];
+    return r.provider.handleReferences(r.workspacePath, r.documentPath, r.position);
   });
 
   // Listen on the connection
