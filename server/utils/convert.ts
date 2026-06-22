@@ -28,3 +28,7 @@ export function getLanguageId(filename: string): string | null {
   }
   return null;
 }
+
+export function isPbGo(filename: string): boolean {
+  return filename.endsWith(".pb.go");
+}

@@ -7,7 +7,7 @@ import type { Node } from "web-tree-sitter";
 import { Walker, WalkerFactory } from "../walkers/base";
 import { getPartnerFile } from "../utils/files";
 import { GoWalker, ProtoWalker } from "../walkers";
-import { getLanguageId, nodesToLocations } from "../utils/convert";
+import { getLanguageId, isPbGo, nodesToLocations } from "../utils/convert";
 import { Shim } from "../shims/base";
 
 function getWalkerFactory(languageId: string): WalkerFactory | null {
@@ -92,18 +92,25 @@ export class Provider {
     documentPath: string,
     position: Position
   ): Promise<Location[]> {
+    // code smell: base.ts shouldn't care about Go
+    if (isPbGo(documentPath)) {
+      console.log(`[references] querying gopls directly: file=${documentPath} position=${position.line}:${position.character}`);
+      const shim = await Shim.create();
+      return shim.references(documentPath, position);
+    }
+
     const resolved = await this.resolveDualNode(workspacePath, documentPath, position);
     if (!resolved) return [];
     const { dualNode, partnerAbsPath } = resolved;
 
-    const gopls_position = {
+    const goplsPosition = {
       line: dualNode.startPosition.row,
       character: dualNode.startPosition.column,
     };
-    console.log(`[references] querying gopls: file=${partnerAbsPath} position=${gopls_position.line}:${gopls_position.character} node_type=${dualNode.type} node_text="${dualNode.text}"`);
+    console.log(`[references] querying gopls via dualNode: file=${partnerAbsPath} position=${goplsPosition.line}:${goplsPosition.character} node_type=${dualNode.type} node_text="${dualNode.text}"`);
 
     const shim = await Shim.create();
-    return shim.references(partnerAbsPath, gopls_position);
+    return shim.references(partnerAbsPath, goplsPosition);
   }
 
   getDualNode(thisNode: Node, thisWalker: Walker, thatWalker: Walker) {

@@ -73,15 +73,14 @@ export class Shim {
     return new Shim(conn);
   }
 
-  async references(_documentPath: string, position: Position): Promise<Location[]> {
-    const document = "/home/heyzec/Desktop/pbleap/examples/example.pb.go";
-    const uri = `file://${document}`;
+  async references(documentPath: string, position: Position): Promise<Location[]> {
+    const uri = `file://${documentPath}`;
     await this.conn.sendNotification("textDocument/didOpen", {
       textDocument: {
         uri,
         languageId: "go",
         version: 1,
-        text: fs.readFileSync(document, "utf8"),
+        text: fs.readFileSync(documentPath, "utf8"),
       },
     });
 
