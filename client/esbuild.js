@@ -19,7 +19,7 @@ const extensionConfig = esbuild.context({
   platform: "node",
   outfile: `./${outputFolder}/extension.js`,
   sourcemap: true,
-  external: ["vscode", "extension"],
+  external: ["vscode", "vscode-languageclient", "extension"],
 });
 
 const wrapperConfig = esbuild.context({
