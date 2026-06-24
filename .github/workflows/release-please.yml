@@ -34,7 +34,11 @@ jobs:
         if: ${{ steps.release.outputs.releases_created == 'true' }}
       - name: Installing node dependencies
         if: ${{ steps.release.outputs.releases_created == 'true' }}
-        run: npm ci --silent
+        run: |
+          npm ci --silent
+          cd client && npm ci --silent && cd ..
+          cd server && npm ci --silent && cd ..
+          cd shim && npm ci --silent && cd ..
       - name: Getting WebAssembly binaries
         if: ${{ steps.release.outputs.releases_created == 'true' }}
         run: just parsers
