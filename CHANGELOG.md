@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.0](https://github.com/heyzec/pbleap/compare/v1.1.0...v1.2.0) (2026-06-24)
+
+
+### Features
+
+* add gopls shim daemon to intercept LSP requests ([2ae5f21](https://github.com/heyzec/pbleap/commit/2ae5f21d8bdc251af7d111382e92c7bfed0e5aca))
+* create prototype ([7d1ee7f](https://github.com/heyzec/pbleap/commit/7d1ee7f5408113f74436dc9e67d02af490b69b9f))
+* enums, nested messages, nested enums ([8512e29](https://github.com/heyzec/pbleap/commit/8512e292fee1ee77bd3f1dedef257ab5eb698f42))
+* init repo from heyzec/templates ([d644408](https://github.com/heyzec/pbleap/commit/d644408ca797b18bf9e9d645472b0c1b1f70e08f))
+
 ## [1.1.0](https://github.com/heyzec/pbleap/compare/v1.0.0...v1.1.0) (2026-06-24)
 
 
