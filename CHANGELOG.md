@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/heyzec/pbleap/compare/v1.2.0...v1.2.1) (2026-06-24)
+
+
+### Bug Fixes
+
+* trigger build (release-please sucks) ([042c495](https://github.com/heyzec/pbleap/commit/042c4954c068dc7d5f7c92b7b60fc46ab1c036a8))
+
 ## [1.2.0](https://github.com/heyzec/pbleap/compare/v1.1.0...v1.2.0) (2026-06-24)
 
 
