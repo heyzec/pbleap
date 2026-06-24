@@ -1,6 +1,6 @@
 {
   "name": "pbleap",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "publisher": "heyzec",
   "license": "MIT",
   "displayName": "PBLeap",
@@ -9,7 +9,9 @@
     "type": "git",
     "url": "git+https://github.com/heyzec/pbleap.git"
   },
-  "categories": ["Programming Languages"],
+  "categories": [
+    "Programming Languages"
+  ],
   "icon": "client/assets/icon.png",
   "engines": {
     "vscode": "^1.93.0"

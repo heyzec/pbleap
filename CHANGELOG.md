@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/heyzec/pbleap/compare/v1.0.0...v1.1.0) (2026-06-24)
+
+
+### Features
+
+* add gopls shim daemon to intercept LSP requests ([2ae5f21](https://github.com/heyzec/pbleap/commit/2ae5f21d8bdc251af7d111382e92c7bfed0e5aca))
+
 ## 1.0.0 (2025-11-16)
 
 
